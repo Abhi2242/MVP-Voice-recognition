@@ -1,0 +1,111 @@
+
+From UserMenuActivity.kt
+else -> {
+
+                    when (currentFragment) {
+                        is OrderHistoryFragment -> {
+                            val targetFragment = currentFragment as OrderHistoryFragment
+                            targetFragment.processVoiceInput(voiceResults)
+                            startListening()
+                        }
+
+                        is CalculateSpectaclePrice -> {
+                            val targetFragment = currentFragment as CalculateSpectaclePrice
+                            targetFragment.processVoiceInput(voiceResults)
+                            startListening()
+                        }
+
+                        else -> {
+                            speakText(getString(R.string.didnt_understand))
+                            startListening()
+                        }
+                    }
+
+                    Log.d(TAG, "onResultsElse $command")
+                }
+
+
+
+
+From CalculateSpectaclePriceFragment.kt
+
+MicStatusListener
+
+private var fragmentStatus: Boolean = false
+    private lateinit var textToSpeech: TextToSpeech
+    var TAG = "CalculateSpectaclePriceFragment"
+
+init()
+textToSpeech = TextToSpeech(requireContext()) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                textToSpeech.language = Locale.US
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "TextToSpeech initialization failed.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+
+
+    fun processVoiceInput(voiceResults: ArrayList<String>?) {
+        voiceResults?.firstOrNull()?.let { command ->
+            when {
+                command.contains("hello gj",true) || command.contains("hello jija", true) ->
+                    speakText("Hi ${userName}, i am here to assist you, so tell me how may i assist you")
+
+                command.contains("select lens", true) || command.contains("lens") -> {
+                    speakText("Showing, Lens Lists")
+                    showLensList()
+                }
+
+                command.contains("select coating", true) || command.contains("coating") -> {
+                    speakText("Showing, coating Lists")
+                    showLensList()
+                }
+
+                removeSpacesAndCreateNumber(command).isDigitsOnly() -> {
+                    val spokenText = command.replace(" ","")
+                    edtPid.text = Editable.Factory().newEditable(spokenText)
+                }
+                command.contains("search", true) -> {
+                    speakText("Sure ")
+                }
+                else -> {
+                    Log.d(TAG, "onResultsFragmentElse $voiceResults")
+                    speakText("Sorry i can't able to understand, can you repeat?")
+                }
+            }
+        }
+    }
+
+    private fun speakText(message: String) {
+        if(fragmentStatus){
+        }else{
+            val speed = 0.8f
+            textToSpeech.setSpeechRate(speed)
+            textToSpeech.speak(message, TextToSpeech.QUEUE_FLUSH,null,null)
+        }
+    }
+    private fun removeSpacesAndCreateNumber(input:String): String{
+        val stringWithoutSpaces = input.replace("\\s+".toRegex(),"")
+        return if (stringWithoutSpaces.matches("\\d+".toRegex())){
+            stringWithoutSpaces
+        }else{
+            "-"
+        }
+    }
+
+    fun onDataChanged(newStatus:Boolean){
+        onMicStatusChanged(newStatus)
+    }
+
+    override fun onMicStatusChanged(isMicOn: Boolean) {
+        fragmentStatus = isMicOn
+    }
+
+//    BAYA30001C148
+
+//    FSK01

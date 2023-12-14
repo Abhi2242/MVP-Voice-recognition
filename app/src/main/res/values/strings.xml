@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">MVP Tutorial</string>
+    <string name="enter_user_name">Enter User Name</string>
+    <string name="enter_password">Enter Password</string>
+    <string name="mvp_tutorial_n_nlogin">MVP Tutorial\nLogIn</string>
+    <string name="login">LogIn</string>
+    <string name="ugvu">ugvu</string>
+    <string name="dog_breed_name">Dog Breed Name:</string>
+    <string name="breed_group">Breed Group:</string>
+    <string name="breed_origin">Breed Origin:</string>
+    <string name="dog_breeds">Dog Breeds</string>
+    <string name="mic">mic</string>
+</resources>
