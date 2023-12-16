@@ -2,6 +2,7 @@ package com.example.mvptutorial.views.activities
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,6 +16,8 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import android.widget.DatePicker
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.app.ActivityCompat
@@ -31,7 +34,10 @@ import com.example.mvptutorial.views.adaptor.DogBreedAdaptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.ArrayList
+import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 @Suppress("DEPRECATION")
@@ -50,6 +56,8 @@ class DogBreedActivity : AppCompatActivity(), DogBreedContract {
     private data class DogBreedNames( val breedName: String)
     private lateinit var dogBreedNameList: List<DogBreedNames>
     private lateinit var dogBreedList: List<DogBreedItem>
+    private lateinit var tvSelectDate: TextView
+    private val calendar = Calendar.getInstance()
 
     /**
      * Step 1: Initialize button for activate/deactivate speech recognition  Line: 67
@@ -63,6 +71,7 @@ class DogBreedActivity : AppCompatActivity(), DogBreedContract {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dog_breed)
 
+        tvSelectDate = findViewById(R.id.tv_date)
         dogBreedRecyclerView = findViewById(R.id.rcv_dogBreed)
         btnMic = findViewById(R.id.ib_mic)
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
@@ -94,6 +103,47 @@ class DogBreedActivity : AppCompatActivity(), DogBreedContract {
                 stopListening()
             }
         }
+
+        tvSelectDate.setOnClickListener {
+            showDatePicker("")
+        }
+
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun showDatePicker(inputDate: String?) {
+        val currentDate = Calendar.getInstance()
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val formattedDate = dateFormat.format(currentDate.time)
+        val userInputDate = dateFormat.format(inputDate)
+
+        // Parse the formatted date string back to a Date object
+        val parsedDate: Date = dateFormat.parse(formattedDate) ?: Date()
+
+        // Get the time in milliseconds from the parsed Date object
+        val milliseconds: Long = parsedDate.time
+
+
+        // Create a DatePickerDialog
+        val datePickerDialog = DatePickerDialog(
+            this, {DatePicker, year: Int, monthOfYear: Int, dayOfMonth: Int ->
+                // Create a new Calendar instance to hold the selected date
+                val selectedDate = Calendar.getInstance()
+                // Set the selected date using the values received from the DatePicker dialog
+                selectedDate.set(year, monthOfYear, dayOfMonth)
+                // Create a SimpleDateFormat to format the date as "dd/MM/yyyy"
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                // Format the selected date into a string
+                val formattedDate = dateFormat.format(selectedDate.time)
+                // Update the TextView to display the selected date with the "Selected Date: " prefix
+                tvSelectDate.text = "Selected Date: $formattedDate"
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+        // Show the DatePicker dialog
+        datePickerDialog.show()
     }
 
     private fun checkAndRequestMicPermissions() {
@@ -223,6 +273,12 @@ class DogBreedActivity : AppCompatActivity(), DogBreedContract {
 
                 command.contains("Stop", true) ->
                     speakText("Mic off")
+
+                command.contains("select date") ->{
+                    val speakText = command.replace("select date ", "")
+                    val input = speakText.replace("""(st|nd|th|rd)""".toRegex(), "")
+                    showDatePicker(input)
+                }
 
                 position != -1 -> {
                     speakText("Yes, ${dogBreedNameList[position].breedName} is present inside Dog Breed List at position ${position + 1}")
